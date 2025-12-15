@@ -6,11 +6,10 @@ param (
 Describe "Smoke Tests" {
     Context "Health Endpoint" {
         It "Should respond with 200 OK" {
-            $response = Invoke-RestMethod -Uri "http://localhost:$Port/health" -Method Get -ResponseHeadersVariable headers -SkipHttpErrorCheck
-            # In PowerShell 7, Invoke-RestMethod returns the body. To check status code we might need -ResponseHeadersVariable or try/catch or Use Invoke-WebRequest
-            
-            # Using Invoke-WebRequest is safer for status code checks
+            # Execute GET request against the health endpoint
             $req = Invoke-WebRequest -Uri "http://localhost:$Port/health" -Method Get
+            
+            # Assert that the status code is 200
             $req.StatusCode | Should -Be 200
         }
     }
