@@ -13,26 +13,19 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Bootstrap
-        run: ./scripts/00-bootstrap.ps1
+      - name: Execute DevOps Pipeline
         shell: pwsh
-
-      - name: Build and Unit Test
-        run: ./scripts/01-build.ps1
-        shell: pwsh
-
-      - name: Run Application
-        run: ./scripts/02-run.ps1 -Port 5001
-        shell: pwsh
-
-      - name: Smoke Tests
-        run: ./scripts/03-test.ps1 -Port 5001
-        shell: pwsh
-
-      - name: Cleanup
-        if: always()
-        run: ./scripts/99-cleanup.ps1
-        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./scripts/00-bootstrap.ps1
+          ./scripts/01-build.ps1
+          try {
+              ./scripts/02-run.ps1 -Port 5001
+              ./scripts/03-test.ps1 -Port 5001
+          }
+          finally {
+              ./scripts/99-cleanup.ps1
+          }
 
       - name: Upload Logs
         if: always()
