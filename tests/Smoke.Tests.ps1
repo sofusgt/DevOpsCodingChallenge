@@ -27,8 +27,8 @@ Describe "Smoke Tests" {
             
             # Check content of the latest log file
             $latestLog = $logFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            $content = Get-Content $latestLog.FullName
-            ($content -join "`n") | Should -Match "Health endpoint hit"
+            $content = Get-Content $latestLog.FullName -Raw
+            $content | Should -Match "Health endpoint hit"
         }
     }
 }
