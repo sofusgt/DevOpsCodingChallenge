@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+*.user
+logs/
+*.log
+.app.pid
+test_results.trx

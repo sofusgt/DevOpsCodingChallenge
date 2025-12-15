@@ -1,0 +1,42 @@
+name: Windows DevOps Challenge
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Bootstrap
+        run: ./scripts/00-bootstrap.ps1
+        shell: pwsh
+
+      - name: Build and Unit Test
+        run: ./scripts/01-build.ps1
+        shell: pwsh
+
+      - name: Run Application
+        run: ./scripts/02-run.ps1 -Port 5001
+        shell: pwsh
+
+      - name: Smoke Tests
+        run: ./scripts/03-test.ps1 -Port 5001
+        shell: pwsh
+
+      - name: Cleanup
+        if: always()
+        run: ./scripts/99-cleanup.ps1
+        shell: pwsh
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: logs/
