@@ -1,23 +1,17 @@
-using Serilog;
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? "logs/app.log";
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
-    .CreateLogger();
-
-builder.Host.UseSerilog();
+// Add services to the container.
+builder.Services.AddLogging();
 
 var app = builder.Build();
 
-app.MapGet("/health", () =>
+app.MapGet("/health", (ILogger<Program> logger) =>
 {
-    Log.Information("Health endpoint hit at {Time}", DateTime.UtcNow);
+    logger.LogInformation("Health endpoint hit at {Time}", DateTime.UtcNow);
     return Results.Ok("OK");
 });
+
+app.MapGet("/", () => "Hello World!");
 
 app.Run();
 

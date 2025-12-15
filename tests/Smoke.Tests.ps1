@@ -15,19 +15,18 @@ Describe "Smoke Tests" {
     }
 
     Context "Logging" {
-        It "Should create a log file and contain health check entry" {
+        It "Should contain health check entry in stdout logs" {
             # Give it a moment to flush logs
             Start-Sleep -Seconds 2
 
             $logDir = Join-Path $PSScriptRoot "../logs"
-            # The app writes to logs/appYYYYMMDD.log because of RollingInterval.Day
-            $logFiles = Get-ChildItem -Path $logDir -Filter "app*.log"
+            # We are now checking the redirected stdout log
+            $logFile = Join-Path $logDir "stdout.log"
             
-            $logFiles.Count | Should -BeGreaterThan 0
+            Test-Path $logFile | Should -Be $true
             
-            # Check content of the latest log file
-            $latestLog = $logFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            $content = Get-Content $latestLog.FullName -Raw
+            # Check content of the log file
+            $content = Get-Content $logFile -Raw
             $content | Should -Match "Health endpoint hit"
         }
     }
