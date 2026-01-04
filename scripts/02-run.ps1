@@ -28,19 +28,29 @@ $process = Start-Process -FilePath "dotnet" -ArgumentList $arguments -WorkingDir
 if ($process.Id) {
     Write-Host "Application started. PID: $($process.Id)"
     $process.Id | Out-File "$PSScriptRoot/../.app.pid"
-    
-    # Wait for service to be up
+
+    # Wait for service to be up with retries
     Write-Host "Waiting for service to initialize..."
-    Start-Sleep -Seconds 5
-    
-    # Simple check
-    try {
-        $response = Invoke-WebRequest -Uri "http://localhost:$Port/health" -Method Get -ErrorAction Stop
-        if ($response.StatusCode -eq 200) {
-            Write-Host "Service is up and running!"
+    $maxRetries = 5
+    $retryCount = 0
+    $serviceOnline = $false
+
+    while ($retryCount -lt $maxRetries -and -not $serviceOnline) {
+        $retryCount++
+        try {
+            $response = Invoke-WebRequest -Uri "http://localhost:$Port/health" -Method Get -ErrorAction Stop
+            if ($response.StatusCode -eq 200) {
+                Write-Host "Service is up and running!"
+                $serviceOnline = $true
+            }
+        } catch {
+            Write-Host "Attempt $retryCount of $maxRetries - Service not ready yet..."
+            Start-Sleep -Seconds 1
         }
-    } catch {
-        Write-Warning "Service might not be ready yet. Check logs."
+    }
+
+    if (-not $serviceOnline) {
+        Write-Warning "Service did not become ready after $maxRetries attempts. Check logs."
     }
 
 } else {
