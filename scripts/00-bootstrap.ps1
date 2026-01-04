@@ -1,11 +1,24 @@
 # scripts/00-bootstrap.ps1
 Write-Host "Bootstrapping environment..."
 
-# Check .NET SDK
-$dotnetVersion = dotnet --version
-if ($LASTEXITCODE -ne 0) {
-    Write-Error ".NET SDK not found."
+# Check PowerShell version
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Error "PowerShell 7 or above is required. Current version: $($PSVersionTable.PSVersion)"
     exit 1
+}
+Write-Host "Found PowerShell version: $($PSVersionTable.PSVersion)"
+
+# Check .NET SDK version and install SDK 10 if needed
+$dotnetVersion = dotnet --version 2>$null
+$dotnetMajor = if ($dotnetVersion) { [int]($dotnetVersion.Split('.')[0]) } else { 0 }
+if ($LASTEXITCODE -ne 0 -or $dotnetMajor -lt 10) {
+    Write-Host "Installing .NET SDK 10 via winget..."
+    winget install --id Microsoft.DotNet.SDK.10 --accept-source-agreements --accept-package-agreements
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to install .NET SDK 10."
+        exit 1
+    }
+    $dotnetVersion = dotnet --version
 }
 Write-Host "Found .NET SDK version: $dotnetVersion"
 
