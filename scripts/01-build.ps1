@@ -4,12 +4,18 @@ param (
 )
 
 $ErrorActionPreference = "Stop"
+$LogsPath = "$PSScriptRoot/../logs"
+
+# Ensure logs folder exists
+if (-not (Test-Path $LogsPath)) {
+    New-Item -ItemType Directory -Path $LogsPath | Out-Null
+}
 
 Write-Host "Building solution: $SolutionPath"
 dotnet build $SolutionPath
 
 Write-Host "Running unit tests..."
-dotnet test $SolutionPath --no-build --logger "trx;LogFileName=test_results.trx"
+dotnet test $SolutionPath --no-build --logger "trx;LogFileName=test_results.trx" --results-directory $LogsPath
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build or Tests failed."
